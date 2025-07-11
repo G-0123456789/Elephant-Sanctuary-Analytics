@@ -1,0 +1,7 @@
+Elephant_ID,Name,Age,Weight_kg,Health_Score (1-10),Monthly_Food_Cost_USD,Medical_Cost_USD,Monthly_Total_Cost_USD
+E001,Jabu,25,5500,9,1200,300,1500
+E002,Morula,40,4800,6,950,500,1450
+E003,Tembo,35,5200,8,1100,450,1550
+E004,Naledi,12,3000,7,700,200,900
+E005,Tshepo,20,4500,5,900,600,1500
+E006,Lesedi,8,2500,8,650,150,800

@@ -1,0 +1,198 @@
+---
+title: "Elephant Sanctuary Financial and Health Analysis"
+author: "Given Dumisa"
+date: "2025-07-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+```
+
+
+## Introduction
+
+The purpose of this analysis is to evaluate the monthly care costs and health outcomes of elephants in a sanctuary. I aim to identify cost drivers and relationships between elephant characteristics and expenses.
+
+
+### Data Overview
+
+```{r}
+# Load the dataset
+elephants <- read_excel("elephant_sanctuary_costs.xlsx")
+# Preview data
+head(elephants)
+str(elephants)
+
+```
+**Dataset columns explained:**
+
+* Elephant_ID: E001
+
+* Name: Elephant name: Jabu
+
+* Age: 25 years
+
+* Weight_kg: 5500 kg
+
+* Health_Score (1-10): 9
+
+* Monthly_Food_Cost_USD: $ 1 200
+
+* Medical_Cost_USD: $ 300
+
+* Monthly_Total_Cost_USD: $ 1 500
+
+
+### Data Cleaning and Transformation
+
+I will create age groups to understand cost and health by age category.
+
+```{r}
+elephants <- elephants %>%
+  mutate(Age_Group = case_when(
+    Age < 15 ~ "Young",
+    Age <= 35 ~ "Adult",
+    TRUE ~ "Senior"
+  ))
+
+# View new age groups
+
+table(elephants$Age_Group)
+```
+
+### Research Questions and Analysis
+
+1. What is the relationship between elephant weight and total monthly cost?
+
+```{r}
+ggplot(elephants, aes(x = Weight_kg, y = Monthly_Total_Cost_USD, color = Age_Group)) +
+  geom_point(size=4) +
+  labs(title="Elephant Weight vs. Monthly Total Cost",
+       x="Weight (kg)", y="Monthly Total Cost (USD)") +
+  theme_minimal()
+```
+
+**Interpretation** 
+Weight vs. Cost:
+Heavier elephants cost more to maintain.
+
+Age Groups:
+Adults: Mid-range weight and cost.
+Seniors: May weigh less but could have higher medical costs.
+Young: Lighter and cheaper, but costs may rise as they grow.
+
+Key Takeaway:
+Bigger elephants = higher costs. Age also plays a role—seniors and growing young elephants might need extra care.
+
+2. Who is the most expensive elephant per kg?
+
+```{r}
+elephants <- elephants %>%
+  mutate(Cost_per_kg = Monthly_Total_Cost_USD / Weight_kg)
+
+elephants %>%
+  arrange(desc(Cost_per_kg)) %>%
+  select(Name, Weight_kg, Monthly_Total_Cost_USD, Cost_per_kg)
+```
+Interpretation: Tembo the elephant with the wieght of 5 200 in the most expensive elephant with a monthly cost of $1 550.
+
+3. What is the average health score by age group?
+
+```{r}
+elephants %>%
+  group_by(Age_Group) %>%
+  summarise(Avg_Health = mean(`Health_Score (1-10)`))
+```
+**Insight**: As expected, the young age group shows a greater health score than another age group.
+
+4. Predicting Cost based on Weight and Health Score
+
+```{r}
+  model <- lm(Monthly_Total_Cost_USD ~ Weight_kg + `Health_Score (1-10)`, data = elephants)
+summary(model)
+```
+
+**Interpretation**
+
+Coefficients: 
+Weight (kg): +0.27 USD/kg (*significant*) → Heavier elephants cost more.  
+Health Score (1-10):-51.71 USD/point (*marginally significant*) → Healthier elephants may cost less.  
+
+Model Fit:
+R² = 98.1% → Extremely strong fit (but small sample: 6 elephants).  
+F-statistic (p = 0.0025) → Model is highly significant.  
+
+Key Takeaway:  
+Weight strongly increases costs, while better health may reduce them—but more data is needed for certainty.
+
+
+### Visualizing Total Monthly Cost per Elephant
+
+```{r}
+ggplot(elephants, aes(x = Name, y = Monthly_Total_Cost_USD, fill = Age_Group)) +
+  geom_bar(stat="identity") +
+  labs(title="Monthly Total Cost per Elephant") +
+  theme_minimal()
+```
+
+
+## Conclusions
+
+Based on the analysis:
+
+**1. Cost Drivers**:
+The elephant with the highest cost per kg was identified as Lesedi, indicating that although she is one of the smallest in weight, her medical or food costs relative to her size are high. This highlights that cost does not scale strictly with weight.
+
+**2. Weight vs. Cost Relationship**:
+There is a positive correlation between elephant weight and monthly total cost, suggesting heavier elephants generally require more resources. However, this is not a perfect relationship due to differences in health needs and food intake efficiency.
+
+**3. Health Scores by Age Group**:
+   Average health scores were **highest among Young and Adult elephants**, while Seniors showed slightly lower health scores, aligning with expected aging health declines.
+
+**4. Regression Findings**:
+   The linear model showed that both weight and health score contribute to predicting monthly costs, but weight had a stronger effect. This model could support future cost planning if expanded with more data.
+
+## Recommendations
+
+**1. Monitor High Cost-per-kg Elephants**
+Focus on elephants with disproportionately high costs relative to their weight, such as Lesedi, to explore potential diet optimisations, medical intervention efficiencies, or care adjustments.
+
+**2. Cost Forecasting Integration**
+Expand this analysis with time-series data **(monthly over a year)** to forecast future sanctuary expenses for budgeting and fundraising strategies.
+
+**3. Enhance Data Collection**
+Incorporate additional variables such as:
+
+* Activity levels
+* Dietary variations
+* Specific medical conditions 
+
+This will help better understand underlying cost drivers.
+
+**4. Dashboard Development**
+Create an interactive Shiny dashboard for sanctuary management to monitor elephant health, cost, and resource allocation in real-time, improving operational decision-making.
+
+**Health Programs for Seniors**
+Design targeted health improvement programs for Senior elephants to maintain their quality of life and potentially reduce medical costs.
+
+**Final Note**
+This analysis demonstrates how combining financial and health data can drive operational efficiency and animal welfare improvements within conservation settings.
+
+
+## Next Steps
+
+* Expanding dataset with more elephants and months.
+
+* Forecasting future sanctuary costs.
+
+
+## References
+
+World Elephant Society. (n.d.). Cost of Caring for an Elephant. Retrieved from [linked phrase](https://www.worldelephantsociety.org)
+```{r}
+#Binary signature: 01000101 01010110 01001001 01001110
+```
